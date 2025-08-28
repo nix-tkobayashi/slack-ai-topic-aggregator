@@ -50,6 +50,28 @@ SlackチャンネルのAI関連の話題を自動的に検出し、スレッド�
    - `/slack-ai/prod/openai-key` - OpenAI API Key
    - `/slack-ai/prod/target-channel` - 要約送信先チャンネルID
 
+## 📁 プロジェクト構造
+
+```
+.
+├── src/                    # Lambda関数のソースコード
+│   ├── handlers/          # Lambda関数のハンドラー
+│   │   ├── event.js       # Slackイベントハンドラー
+│   │   ├── monitor.js     # チャンネル監視
+│   │   └── summary.js     # 要約生成
+│   ├── services/          # ビジネスロジック
+│   │   └── aiAnalyzer.js  # OpenAI統合
+│   ├── package.json       # 依存関係定義
+│   └── node_modules/      # NPMパッケージ
+├── terraform/             # インフラ構成
+│   ├── lambda.tf         # Lambda関数定義
+│   ├── dynamodb.tf       # DynamoDBテーブル
+│   └── ...
+├── scripts/              # ユーティリティスクリプト
+│   └── build-lambda.sh   # Lambdaパッケージビルド
+└── README.md
+```
+
 ## 🏗️ アーキテクチャ
 
 ```
@@ -133,16 +155,18 @@ terraform apply
 
 ```bash
 # Lambda関数のパッケージ作成
-zip -r lambda.zip handlers/ services/ package.json
+bash scripts/build-lambda.sh
 
 # Lambda関数の更新
 aws lambda update-function-code \
   --function-name slack-ai-aggregator-channel-monitor-prod \
-  --zip-file fileb://lambda.zip
+  --zip-file fileb://lambda-deployment.zip \
+  --region ap-northeast-1
 
 aws lambda update-function-code \
   --function-name slack-ai-aggregator-summary-generator-prod \
-  --zip-file fileb://lambda.zip
+  --zip-file fileb://lambda-deployment.zip \
+  --region ap-northeast-1
 ```
 
 ## 🔍 検出されるAIキーワード

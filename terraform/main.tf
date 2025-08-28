@@ -17,39 +17,19 @@ provider "aws" {
 }
 
 # Lambda関数用のZIPアーカイブを作成
+# srcディレクトリ全体をパッケージング
 data "archive_file" "lambda_functions" {
   type        = "zip"
   output_path = "${path.module}/lambda_function.zip"
+  source_dir  = "${path.module}/../src"
   
-  source {
-    content  = file("${path.module}/../handlers/event.js")
-    filename = "handlers/event.js"
-  }
-  
-  source {
-    content  = file("${path.module}/../handlers/monitor.js")
-    filename = "handlers/monitor.js"
-  }
-  
-  source {
-    content  = file("${path.module}/../handlers/summary.js")
-    filename = "handlers/summary.js"
-  }
-  
-  source {
-    content  = file("${path.module}/../services/aiDetector.js")
-    filename = "services/aiDetector.js"
-  }
-  
-  source {
-    content  = file("${path.module}/../services/summarizer.js")
-    filename = "services/summarizer.js"
-  }
-  
-  source {
-    content  = file("${path.module}/../package.json")
-    filename = "package.json"
-  }
+  excludes = [
+    "node_modules/aws-sdk",
+    ".DS_Store",
+    "*.md",
+    "*.test.js",
+    "*.spec.js"
+  ]
 }
 
 # Lambda Layer for dependencies

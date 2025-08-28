@@ -1,4 +1,6 @@
 # Dependencies
+src/node_modules/
+src/package-lock.json
 node_modules/
 package-lock.json
 
@@ -30,6 +32,7 @@ yarn-error.log*
 dist/
 build/
 *.zip
+lambda-deployment.zip
 
 # Terraform
 terraform/.terraform/
