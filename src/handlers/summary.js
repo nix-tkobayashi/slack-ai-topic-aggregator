@@ -52,7 +52,7 @@ export const handler = async (event) => {
     do {
       const response = await slack.conversations.list({
         exclude_archived: true,
-        types: 'public_channel', // プライベートチャンネルは権限追加後に対応
+        types: 'public_channel,private_channel', // パブリック・プライベート両方を対象
         limit: 100,
         cursor: cursor
       });

@@ -38,10 +38,10 @@ SlackチャンネルのAI関連の話題を自動的に検出し、スレッド�
 2. 以下の権限（OAuth Scopes）を追加：
    - `channels:read` - パブリックチャンネルのリスト取得
    - `channels:history` - パブリックチャンネルのメッセージ読み取り
+   - `groups:read` - プライベートチャンネルのリスト取得
+   - `groups:history` - プライベートチャンネルのメッセージ読み取り
    - `chat:write` - メッセージ送信
    - `users:read` - ユーザー情報取得
-   - `groups:history` - プライベートチャンネルのメッセージ読み取り（オプション）
-   - `groups:read` - プライベートチャンネルのリスト取得（オプション）
 
 ### AWS設定
 
