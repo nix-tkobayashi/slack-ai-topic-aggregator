@@ -1,0 +1,63 @@
+# Project Configuration
+project_name = "slack-ai-aggregator"
+environment  = "prod"
+aws_region   = "ap-northeast-1"
+
+# Slack Configuration
+# Target channel where AI summaries will be posted
+slack_target_channel = "C1234567890"
+
+# Monitor channels are auto-discovered
+# Bot will monitor all channels it's invited to - no configuration needed!
+
+# SSM Parameter Configuration
+ssm_parameter_prefix    = "slack-ai/prod"
+create_ssm_placeholders = false  # Set to true on first deployment
+
+# Lambda Configuration (optional - defaults are usually fine)
+# lambda_memory_size_event   = 256
+# lambda_memory_size_monitor = 512
+# lambda_memory_size_summary = 512
+# lambda_timeout_event       = 10
+# lambda_timeout_monitor     = 30
+# lambda_timeout_summary     = 60
+
+# EventBridge Schedule Configuration
+monitor_schedule = "rate(5 minutes)"              # Monitor channels every 5 minutes
+summary_schedule = "cron(0 0,9 * * ? *)"         # 9 AM and 6 PM JST (0 AM and 9 AM UTC)
+
+# DynamoDB Configuration
+dynamodb_billing_mode          = "PAY_PER_REQUEST"  # or "PROVISIONED"
+enable_point_in_time_recovery  = false              # Enable for production
+# If using PROVISIONED mode:
+# dynamodb_read_capacity       = 5
+# dynamodb_write_capacity      = 5
+# enable_dynamodb_autoscaling  = true
+# dynamodb_autoscale_min_read  = 5
+# dynamodb_autoscale_max_read  = 20
+# dynamodb_autoscale_min_write = 5
+# dynamodb_autoscale_max_write = 20
+
+# API Gateway Configuration
+enable_api_throttling = true
+api_throttle_rate     = 10    # requests per second
+api_throttle_burst    = 20    # burst capacity
+enable_xray_tracing   = false # Enable for debugging
+
+# Logging Configuration
+log_retention_days = 7  # Increase for production (e.g., 30 or 90)
+
+# Monitoring Configuration
+# sns_topic_arn = "arn:aws:sns:ap-northeast-1:123456789012:alerts"  # Optional
+
+# Feature Flags
+delete_after_summary   = "false"  # Set to "true" to delete messages after summary
+enable_dlq             = false     # Enable Dead Letter Queue
+enable_manual_triggers = true      # Enable manual EventBridge triggers for testing
+
+# Additional Tags (optional)
+tags = {
+  Owner       = "your-team"
+  CostCenter  = "engineering"
+  Application = "slack-bot"
+}

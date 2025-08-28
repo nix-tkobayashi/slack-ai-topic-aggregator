@@ -1,0 +1,34 @@
+display_information:
+  name: AI Topic Aggregator
+  description: Automatically detects and summarizes AI-related topics in Slack channels
+  background_color: "#2c2d30"
+  long_description: This bot monitors specified Slack channels for AI-related discussions, automatically detects relevant messages, and sends periodic summaries to a designated channel. It uses OpenAI for intelligent summarization and can handle both public and private channels.
+
+features:
+  bot_user:
+    display_name: AI Topic Aggregator
+    always_online: true
+
+oauth_config:
+  scopes:
+    bot:
+      # 必須スコープ
+      - channels:history    # 公開チャンネルの履歴を読む
+      - channels:read       # チャンネル情報を読む  
+      - chat:write         # メッセージを送信
+      - users:read         # ユーザー情報を読む
+      # オプション（プライベートチャンネル対応）
+      - groups:history     # プライベートチャンネルの履歴を読む
+
+settings:
+  event_subscriptions:
+    # タイプ#2, #4でリアルタイム処理する場合のみ必要
+    bot_events:
+      - message.channels   # 公開チャンネルのメッセージ
+      - message.groups    # プライベートチャンネルのメッセージ
+  
+  interactivity:
+    is_enabled: false
+    
+  org_deploy_enabled: false
+  socket_mode_enabled: false
