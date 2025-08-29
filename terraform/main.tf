@@ -36,13 +36,13 @@ data "archive_file" "lambda_functions" {
 resource "aws_lambda_layer_version" "dependencies" {
   filename            = "${path.module}/layer.zip"
   layer_name          = "${var.project_name}-dependencies-${var.environment}"
-  compatible_runtimes = ["nodejs18.x"]
+  compatible_runtimes = ["nodejs20.x"]
   description         = "Dependencies for Slack AI Aggregator"
 }
 
 # CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "lambda_logs" {
-  for_each = toset(["event-handler", "channel-monitor", "summary-generator"])
+  for_each = toset(["channel-monitor", "summary-generator"])
   
   name              = "/aws/lambda/${var.project_name}-${each.key}-${var.environment}"
   retention_in_days = var.log_retention_days

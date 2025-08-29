@@ -21,8 +21,8 @@ SlackチャンネルのAI関連の話題を自動的に検出し、スレッド�
 
 ### 2. 自動的に監視開始
 
-- 1分毎にAI関連メッセージを収集（テスト時）
-- 5分毎に要約を生成して指定チャンネルに送信
+- 設定した間隔でAI関連メッセージを収集（デフォルト: 6時間毎）
+- 設定した間隔で要約を生成して指定チャンネルに送信（デフォルト: 毎日09:00 JST）
 
 ### 3. 監視を停止
 
@@ -45,7 +45,8 @@ SlackチャンネルのAI関連の話題を自動的に検出し、スレッド�
 
 ### AWS設定
 
-1. AWS SSM Parameter Storeに以下を設定：
+1. AWS Lambda Runtime: Node.js 22.x
+2. AWS SSM Parameter Storeに以下を設定：
    - `/slack-ai/prod/bot-token` - Slack Bot User OAuth Token
    - `/slack-ai/prod/openai-key` - OpenAI API Key
    - `/slack-ai/prod/target-channel` - 要約送信先チャンネルID
@@ -105,8 +106,8 @@ SlackチャンネルのAI関連の話題を自動的に検出し、スレッド�
   - `processed`: 処理済みメッセージIDを記録
 
 - **EventBridge**
-  - 監視: 1分毎（テスト時）/ 5分毎（本番）
-  - 要約: 5分毎（テスト時）/ 朝夜2回（本番）
+  - 監視: 6時間毎
+  - 要約: 毎日09:00 JST
 
 ## 📝 要約フォーマット
 

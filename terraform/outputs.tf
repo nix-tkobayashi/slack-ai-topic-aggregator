@@ -1,30 +1,4 @@
-# API Gateway Outputs
-output "api_gateway_url" {
-  description = "URL for Slack Event Subscriptions webhook"
-  value       = "${aws_api_gateway_stage.slack_api.invoke_url}/slack/events"
-}
-
-output "api_gateway_id" {
-  description = "API Gateway ID"
-  value       = aws_api_gateway_rest_api.slack_api.id
-}
-
-output "api_gateway_stage" {
-  description = "API Gateway stage name"
-  value       = aws_api_gateway_stage.slack_api.stage_name
-}
-
 # Lambda Function Outputs
-output "lambda_event_handler_arn" {
-  description = "ARN of the event handler Lambda function"
-  value       = aws_lambda_function.event_handler.arn
-}
-
-output "lambda_event_handler_name" {
-  description = "Name of the event handler Lambda function"
-  value       = aws_lambda_function.event_handler.function_name
-}
-
 output "lambda_channel_monitor_arn" {
   description = "ARN of the channel monitor Lambda function"
   value       = aws_lambda_function.channel_monitor.arn
@@ -92,10 +66,8 @@ output "lambda_execution_role_name" {
 output "cloudwatch_log_groups" {
   description = "CloudWatch log group names for Lambda functions"
   value = {
-    event_handler      = aws_cloudwatch_log_group.lambda_logs["event-handler"].name
     channel_monitor    = aws_cloudwatch_log_group.lambda_logs["channel-monitor"].name
     summary_generator  = aws_cloudwatch_log_group.lambda_logs["summary-generator"].name
-    api_gateway        = aws_cloudwatch_log_group.api_gateway_logs.name
   }
 }
 
@@ -121,13 +93,10 @@ output "ssm_parameters" {
 output "cloudwatch_alarms" {
   description = "CloudWatch alarm names"
   value = {
-    event_handler_errors      = aws_cloudwatch_metric_alarm.event_handler_errors.alarm_name
     channel_monitor_errors    = aws_cloudwatch_metric_alarm.channel_monitor_errors.alarm_name
     summary_generator_errors  = aws_cloudwatch_metric_alarm.summary_generator_errors.alarm_name
     lambda_throttles          = aws_cloudwatch_metric_alarm.lambda_throttles.alarm_name
     lambda_duration           = aws_cloudwatch_metric_alarm.lambda_duration.alarm_name
-    api_gateway_4xx          = aws_cloudwatch_metric_alarm.api_gateway_4xx.alarm_name
-    api_gateway_5xx          = aws_cloudwatch_metric_alarm.api_gateway_5xx.alarm_name
   }
 }
 
@@ -150,6 +119,5 @@ output "deployment_info" {
     region           = var.aws_region
     monitor_schedule = var.monitor_schedule
     summary_schedule = var.summary_schedule
-    api_endpoint     = "${aws_api_gateway_stage.slack_api.invoke_url}/slack/events"
   }
 }

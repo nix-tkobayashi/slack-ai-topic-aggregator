@@ -83,36 +83,6 @@ resource "aws_iam_role_policy" "lambda_ssm" {
   })
 }
 
-# Lambda関数: Event Handler (Slack Webhook)
-resource "aws_lambda_function" "event_handler" {
-  filename         = data.archive_file.lambda_functions.output_path
-  function_name    = "${var.project_name}-event-handler-${var.environment}"
-  role            = aws_iam_role.lambda_execution.arn
-  handler         = "handlers/event.handler"
-  source_code_hash = data.archive_file.lambda_functions.output_base64sha256
-  runtime         = "nodejs18.x"
-  timeout         = 10
-  memory_size     = 256
-
-  layers = [aws_lambda_layer_version.dependencies.arn]
-
-  environment {
-    variables = {
-      MESSAGES_TABLE      = aws_dynamodb_table.messages.name
-      PROCESSED_TABLE     = aws_dynamodb_table.processed.name
-      SLACK_BOT_TOKEN     = "ssm:${var.ssm_parameter_prefix}/bot-token"
-      SLACK_SIGNING_SECRET = "ssm:${var.ssm_parameter_prefix}/signing-secret"
-      MONITOR_CHANNELS    = "ssm:${var.ssm_parameter_prefix}/monitor-channels"
-      ENVIRONMENT         = var.environment
-    }
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.lambda_basic,
-    aws_cloudwatch_log_group.lambda_logs["event-handler"]
-  ]
-}
-
 # Lambda関数: Channel Monitor (定期監視)
 resource "aws_lambda_function" "channel_monitor" {
   filename         = data.archive_file.lambda_functions.output_path
@@ -120,8 +90,8 @@ resource "aws_lambda_function" "channel_monitor" {
   role            = aws_iam_role.lambda_execution.arn
   handler         = "handlers/monitor.handler"
   source_code_hash = data.archive_file.lambda_functions.output_base64sha256
-  runtime         = "nodejs18.x"
-  timeout         = 30
+  runtime         = "nodejs22.x"
+  timeout         = 60
   memory_size     = 512
 
   layers = [aws_lambda_layer_version.dependencies.arn]
@@ -130,11 +100,13 @@ resource "aws_lambda_function" "channel_monitor" {
 
   environment {
     variables = {
-      MESSAGES_TABLE     = aws_dynamodb_table.messages.name
-      PROCESSED_TABLE    = aws_dynamodb_table.processed.name
-      SLACK_BOT_TOKEN    = "ssm:${var.ssm_parameter_prefix}/bot-token"
-      TARGET_CHANNEL_ID  = "ssm:${var.ssm_parameter_prefix}/target-channel"
-      ENVIRONMENT        = var.environment
+      MESSAGES_TABLE            = aws_dynamodb_table.messages.name
+      PROCESSED_TABLE           = aws_dynamodb_table.processed.name
+      SLACK_BOT_TOKEN           = "ssm:${var.ssm_parameter_prefix}/bot-token"
+      TARGET_CHANNEL_ID         = "ssm:${var.ssm_parameter_prefix}/target-channel"
+      MONITOR_INTERVAL_MINUTES  = var.monitor_interval_minutes
+      MONITOR_SCHEDULE          = var.monitor_schedule
+      ENVIRONMENT               = var.environment
     }
   }
 
@@ -151,7 +123,7 @@ resource "aws_lambda_function" "summary_generator" {
   role            = aws_iam_role.lambda_execution.arn
   handler         = "handlers/summary.handler"
   source_code_hash = data.archive_file.lambda_functions.output_base64sha256
-  runtime         = "nodejs18.x"
+  runtime         = "nodejs22.x"
   timeout         = 60
   memory_size     = 512
 
@@ -175,15 +147,6 @@ resource "aws_lambda_function" "summary_generator" {
     aws_iam_role_policy_attachment.lambda_basic,
     aws_cloudwatch_log_group.lambda_logs["summary-generator"]
   ]
-}
-
-# Lambda Permission for API Gateway
-resource "aws_lambda_permission" "api_gateway" {
-  statement_id  = "AllowAPIGatewayInvoke"
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.event_handler.function_name
-  principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_api_gateway_rest_api.slack_api.execution_arn}/*/*"
 }
 
 # Lambda Permission for EventBridge (Monitor)

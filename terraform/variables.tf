@@ -82,6 +82,12 @@ variable "monitor_schedule" {
   default     = "rate(5 minutes)"
 }
 
+variable "monitor_interval_minutes" {
+  description = "Monitoring interval in minutes (should match monitor_schedule)"
+  type        = number
+  default     = 5
+}
+
 variable "summary_schedule" {
   description = "EventBridge schedule for summary generation (cron format in UTC)"
   type        = string

@@ -2,6 +2,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
 import { SSMClient, GetParameterCommand } from '@aws-sdk/client-ssm';
 import { WebClient } from '@slack/web-api';
+import { parseScheduleToMinutes } from '../utils/scheduleParser.js';
 
 const dynamodb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const ssm = new SSMClient({});
@@ -55,7 +56,13 @@ export const handler = async (event) => {
   // SSMからトークンと設定を取得
   const botToken = await getParameterValue(process.env.SLACK_BOT_TOKEN);
   const targetChannelId = await getParameterValue(process.env.TARGET_CHANNEL_ID);
-  slack = new WebClient(botToken);
+  
+  // Slack WebClientを初期化（レート制限時のリトライを無効化）
+  slack = new WebClient(botToken, {
+    retryConfig: {
+      retries: 0  // リトライを無効化（Lambda関数のタイムアウトを防ぐ）
+    }
+  });
   
   const results = {
     processed: 0,
@@ -99,6 +106,20 @@ export const handler = async (event) => {
     
   } catch (error) {
     console.error('Error fetching bot channels:', error);
+    
+    // レート制限エラーの場合は正常終了として扱う
+    if (error.data?.error === 'rate_limited') {
+      console.log('Rate limited by Slack API. Will retry in next scheduled execution.');
+      results.rate_limited = true;
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          ...results,
+          message: 'Rate limited by Slack API. Will retry in next scheduled execution.'
+        })
+      };
+    }
+    
     results.errors.push({ error: 'Failed to fetch bot channels', message: error.message });
     return {
       statusCode: 500,
@@ -106,8 +127,16 @@ export const handler = async (event) => {
     };
   }
 
-  // 5分前のタイムスタンプ
-  const since = (Date.now() / 1000 - 300).toString();
+  // 監視間隔から取得期間を計算（環境変数またはデフォルト値を使用）
+  const intervalMinutes = parseInt(process.env.MONITOR_INTERVAL_MINUTES) || 
+                          parseScheduleToMinutes(process.env.MONITOR_SCHEDULE) || 
+                          5;
+  
+  // 少しバッファを持たせて取得（10%の余裕）
+  const bufferMinutes = Math.max(intervalMinutes * 1.1, intervalMinutes + 1);
+  const since = (Date.now() / 1000 - (bufferMinutes * 60)).toString();
+  
+  console.log(`Monitoring interval: ${intervalMinutes} minutes, fetching messages from last ${bufferMinutes} minutes`);
 
   for (const channel of monitorChannels) {
     try {

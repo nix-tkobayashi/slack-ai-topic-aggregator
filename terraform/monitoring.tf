@@ -1,31 +1,5 @@
 # CloudWatch Alarms for Lambda Functions
 
-# Alarm for Event Handler Errors
-resource "aws_cloudwatch_metric_alarm" "event_handler_errors" {
-  alarm_name          = "${var.project_name}-event-handler-errors-${var.environment}"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "Errors"
-  namespace           = "AWS/Lambda"
-  period              = 300
-  statistic           = "Sum"
-  threshold           = 5
-  alarm_description   = "This metric monitors Lambda function errors for Event Handler"
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    FunctionName = aws_lambda_function.event_handler.function_name
-  }
-
-  alarm_actions = var.sns_topic_arn != "" ? [var.sns_topic_arn] : []
-
-  tags = {
-    Name        = "${var.project_name}-event-handler-errors-${var.environment}"
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
 # Alarm for Channel Monitor Errors
 resource "aws_cloudwatch_metric_alarm" "channel_monitor_errors" {
   alarm_name          = "${var.project_name}-channel-monitor-errors-${var.environment}"
@@ -92,7 +66,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_throttles" {
   treat_missing_data  = "notBreaching"
 
   dimensions = {
-    FunctionName = aws_lambda_function.event_handler.function_name
+    FunctionName = aws_lambda_function.channel_monitor.function_name
   }
 
   alarm_actions = var.sns_topic_arn != "" ? [var.sns_topic_arn] : []
@@ -155,60 +129,6 @@ resource "aws_cloudwatch_metric_alarm" "dynamodb_throttles" {
 
   tags = {
     Name        = "${var.project_name}-dynamodb-throttles-${var.environment}"
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
-# API Gateway 4XX Errors
-resource "aws_cloudwatch_metric_alarm" "api_gateway_4xx" {
-  alarm_name          = "${var.project_name}-api-4xx-errors-${var.environment}"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 2
-  metric_name         = "4XXError"
-  namespace           = "AWS/ApiGateway"
-  period              = 300
-  statistic           = "Sum"
-  threshold           = 50
-  alarm_description   = "This metric monitors API Gateway 4XX errors"
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    ApiName = aws_api_gateway_rest_api.slack_api.name
-    Stage   = aws_api_gateway_stage.slack_api.stage_name
-  }
-
-  alarm_actions = var.sns_topic_arn != "" ? [var.sns_topic_arn] : []
-
-  tags = {
-    Name        = "${var.project_name}-api-4xx-errors-${var.environment}"
-    Environment = var.environment
-    Project     = var.project_name
-  }
-}
-
-# API Gateway 5XX Errors
-resource "aws_cloudwatch_metric_alarm" "api_gateway_5xx" {
-  alarm_name          = "${var.project_name}-api-5xx-errors-${var.environment}"
-  comparison_operator = "GreaterThanThreshold"
-  evaluation_periods  = 1
-  metric_name         = "5XXError"
-  namespace           = "AWS/ApiGateway"
-  period              = 60
-  statistic           = "Sum"
-  threshold           = 5
-  alarm_description   = "This metric monitors API Gateway 5XX errors"
-  treat_missing_data  = "notBreaching"
-
-  dimensions = {
-    ApiName = aws_api_gateway_rest_api.slack_api.name
-    Stage   = aws_api_gateway_stage.slack_api.stage_name
-  }
-
-  alarm_actions = var.sns_topic_arn != "" ? [var.sns_topic_arn] : []
-
-  tags = {
-    Name        = "${var.project_name}-api-5xx-errors-${var.environment}"
     Environment = var.environment
     Project     = var.project_name
   }

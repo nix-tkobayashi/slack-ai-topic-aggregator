@@ -29,7 +29,13 @@ export const handler = async (event) => {
   
   // SSMからパラメータを取得
   const botToken = await getParameterValue(process.env.SLACK_BOT_TOKEN);
-  slack = new WebClient(botToken);
+  
+  // Slack WebClientを初期化（レート制限時のリトライを無効化）
+  slack = new WebClient(botToken, {
+    retryConfig: {
+      retries: 0  // リトライを無効化（Lambda関数のタイムアウトを防ぐ）
+    }
+  });
   
   // OpenAI APIキーも設定
   const openaiKey = await getParameterValue(process.env.OPENAI_API_KEY);
@@ -68,6 +74,20 @@ export const handler = async (event) => {
     console.log(`Found ${monitorChannels.length} channels to summarize (excluding target channel: ${targetChannel})`);
   } catch (error) {
     console.error('Error fetching bot channels:', error);
+    
+    // レート制限エラーの場合は正常終了として扱う
+    if (error.data?.error === 'rate_limited') {
+      console.log('Rate limited by Slack API. Will retry in next scheduled execution.');
+      results.rate_limited = true;
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          ...results,
+          message: 'Rate limited by Slack API. Will retry in next scheduled execution.'
+        })
+      };
+    }
+    
     results.errors.push({ error: 'Failed to fetch channels', message: error.message });
     return {
       statusCode: 500,
