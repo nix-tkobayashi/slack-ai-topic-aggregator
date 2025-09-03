@@ -11,7 +11,7 @@ rm -rf $WORK_DIR
 mkdir -p $WORK_DIR/nodejs
 
 # package.jsonをコピー
-cp src/package.json $WORK_DIR/nodejs/
+cp ../src/package.json $WORK_DIR/nodejs/
 
 # 作業ディレクトリに移動
 cd $WORK_DIR/nodejs
@@ -35,11 +35,11 @@ find . -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
 # zipファイルの作成
 cd ..
 echo "Creating zip file..."
-zip -r ../terraform/layer.zip nodejs -q
+zip -r ../../terraform/layer.zip nodejs -q
 
 # 作業ディレクトリの削除
 cd ..
 rm -rf $WORK_DIR
 
 echo "Layer created successfully: terraform/layer.zip"
-echo "Size: $(ls -lh terraform/layer.zip | awk '{print $5}')"
+echo "Size: $(ls -lh ../terraform/layer.zip | awk '{print $5}')"
