@@ -33,6 +33,7 @@ dist/
 build/
 *.zip
 lambda-deployment.zip
+layer_build/
 
 # Terraform
 terraform/.terraform/
